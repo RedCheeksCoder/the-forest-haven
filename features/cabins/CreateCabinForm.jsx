@@ -51,7 +51,7 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function CreateCabinForm({ cabinToEdit = {} }) {
+function CreateCabinForm({ cabinToEdit = {}, onClose }) {
   /* Custom hook pero hindi nasa hook folder since hindi naman globally reusable. Parang refactoring lang */
   const { isCreating, createCabin } = useCreateCabin();
   const { isEditting, editCabin } = useEditCabin();
@@ -80,11 +80,22 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         { newCabinData: { ...data, image }, id: editId },
         { onSuccess: () => reset() }
       );
-    else createCabin({ ...data, image: image }, { onSuccess: () => reset() });
+    else
+      createCabin(
+        { ...data, image: image },
+        {
+          onSuccess: (data) => {
+            reset();
+            onClose?.();
+          },
+        }
+      );
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
+    <Form
+      onSubmit={handleSubmit(onSubmit)}
+      type={onClose ? "modal" : "regular"}>
       <FormRow>
         <Label htmlFor="name">Cabin name</Label>
         <Input
@@ -177,7 +188,11 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button variation="secondary" type="reset" disabled={isWorking}>
+        <Button
+          variation="secondary"
+          type="reset"
+          disabled={isWorking}
+          onClick={() => onClose?.()}>
           Cancel
         </Button>
         <Button variation="primary" disabled={isWorking}>
